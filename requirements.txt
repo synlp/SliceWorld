@@ -1,0 +1,12 @@
+torch>=2.2
+transformers>=4.51.0
+mamba-ssm>=2.2.4
+peft>=0.11.0
+pyyaml>=6.0
+numpy>=1.24
+pillow>=10.0
+nibabel>=5.2
+tqdm>=4.66
+scikit-learn>=1.4
+scipy>=1.11
+pytest>=8.0

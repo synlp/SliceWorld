@@ -1,0 +1,76 @@
+seed: 7
+device: auto
+output_dir: outputs/finetune_ctrate_qwen3_1p7b
+
+data:
+  dataset: ctrate
+  preprocessed_root: data/ctrate_preprocessed
+  manifest_path: data/ctrate_preprocessed/manifest_train.jsonl
+  split: train
+  report_field: findings_impressions
+  batch_size: 1
+  gradient_accumulation: 2
+  num_workers: 4
+  max_sampled_slices: 480
+  max_text_length: 384
+
+model:
+  world_checkpoint: outputs/world_pretraining_deeplesion/epoch_3.pt
+  freeze_world_model: true
+  world_model:
+    future_horizon: 5
+    dropout: 0.1
+    slice_encoder:
+      type: dinov2
+      model_name: facebook/dinov2-large
+      hidden_dim: 1024
+      freeze: true
+    sequence_encoder:
+      type: mamba
+      backend: mamba_ssm
+      layers: 12
+      d_model: 512
+      d_state: 16
+      d_conv: 4
+      expand: 2
+    state:
+      d_anat: 256
+      d_lesion: 192
+      d_unc: 64
+      world_dim: 512
+  llm:
+    model_name: Qwen/Qwen3-1.7B
+    hidden_dim: 2048
+    load: true
+    trust_remote_code: true
+    torch_dtype: bfloat16
+    use_lora: true
+    lora:
+      rank: 16
+      alpha: 32
+      dropout: 0.05
+  optional_backbones:
+    qwen3_4b:
+      model_name: Qwen/Qwen3-4B
+      hidden_dim: 2560
+    ministral_3_3b:
+      model_name: mistralai/Ministral-3-3B-Instruct-2512
+      hidden_dim: 3072
+
+optimizer:
+  name: AdamW
+  lr: 2.0e-5
+  weight_decay: 0.01
+  epochs: 1
+  gradient_accumulation: 2
+  max_grad_norm: 1.0
+
+loss:
+  alpha_nsp: 0
+  alpha_fas: 0
+  alpha_cf: 0
+  alpha_ctrg: 1
+
+generation:
+  prompt: Generate a concise CT radiology report from the SliceWorld tokens.
+  max_new_tokens: 384

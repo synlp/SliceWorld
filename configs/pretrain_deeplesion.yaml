@@ -1,0 +1,60 @@
+seed: 7
+device: auto
+output_dir: outputs/world_pretraining_deeplesion
+
+data:
+  dataset: deeplesion
+  images_root: data/deeplesion/Images_png
+  dl_info_csv: data/deeplesion/DL_info.csv
+  generated_manifest_path: manifests/deeplesion_train.jsonl
+  manifest_path: manifests/deeplesion_train.jsonl
+  split: train
+  batch_size: 8
+  num_workers: 4
+  image_size: 224
+  max_sequence_length: 256
+  max_sampled_slices: 196
+
+model:
+  future_horizon: 5
+  dropout: 0.1
+  slice_encoder:
+    type: dinov2
+    model_name: facebook/dinov2-large
+    hidden_dim: 1024
+    freeze: true
+  sequence_encoder:
+    type: mamba
+    backend: mamba_ssm
+    layers: 12
+    d_model: 512
+    d_state: 16
+    d_conv: 4
+    expand: 2
+  state:
+    d_anat: 256
+    d_lesion: 192
+    d_unc: 64
+    world_dim: 512
+
+optimizer:
+  name: AdamW
+  lr: 1.0e-4
+  weight_decay: 0.01
+  epochs: 3
+  max_grad_norm: 1.0
+
+loss:
+  alpha_nsp: 1
+  alpha_fas: 1
+  alpha_cf: 1
+  alpha_ctrg: 0
+  lambda_h: 1
+  lambda_w: 1
+  lambda_smooth: 1
+  lambda_sparse: 1
+  lambda_unc: 1
+  lambda_occ: 1
+  lambda_inv: 1
+  lambda_eff: 1
+  margin_delta: 0.1

@@ -1,0 +1,53 @@
+seed: 7
+device: auto
+checkpoint: outputs/finetune_ctrate_qwen3_1p7b/epoch_1.pt
+output_path: outputs/eval_ctrate.json
+
+data:
+  dataset: ctrate
+  preprocessed_root: data/ctrate_preprocessed
+  manifest_path: data/ctrate_preprocessed/manifest_valid.jsonl
+  split: valid
+  report_field: findings_impressions
+  batch_size: 1
+  max_sampled_slices: 480
+  max_text_length: 384
+
+model:
+  freeze_world_model: true
+  world_model:
+    future_horizon: 5
+    dropout: 0.1
+    slice_encoder:
+      type: dinov2
+      model_name: facebook/dinov2-large
+      hidden_dim: 1024
+      freeze: true
+    sequence_encoder:
+      type: mamba
+      backend: mamba_ssm
+      layers: 12
+      d_model: 512
+      d_state: 16
+      d_conv: 4
+      expand: 2
+    state:
+      d_anat: 256
+      d_lesion: 192
+      d_unc: 64
+      world_dim: 512
+  llm:
+    model_name: Qwen/Qwen3-1.7B
+    hidden_dim: 2048
+    load: true
+    trust_remote_code: true
+    torch_dtype: bfloat16
+    use_lora: true
+    lora:
+      rank: 16
+      alpha: 32
+      dropout: 0.05
+
+generation:
+  prompt: Generate a concise CT radiology report from the SliceWorld tokens.
+  max_new_tokens: 384

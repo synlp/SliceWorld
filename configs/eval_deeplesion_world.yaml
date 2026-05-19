@@ -1,0 +1,37 @@
+seed: 7
+device: auto
+checkpoint: outputs/world_pretraining_deeplesion/epoch_3.pt
+output_path: outputs/eval_nsp_deeplesion_val.json
+factor_output: outputs/factors_deeplesion_val.npz
+probe_output: outputs/factor_probe_summary_val.json
+prediction_head: world
+z_bins: 10
+
+data:
+  dataset: deeplesion
+  manifest_path: manifests/deeplesion_val.jsonl
+  split: val
+  batch_size: 1
+  max_sampled_slices: 196
+
+model:
+  future_horizon: 5
+  dropout: 0.1
+  slice_encoder:
+    type: dinov2
+    model_name: facebook/dinov2-large
+    hidden_dim: 1024
+    freeze: true
+  sequence_encoder:
+    type: mamba
+    backend: mamba_ssm
+    layers: 12
+    d_model: 512
+    d_state: 16
+    d_conv: 4
+    expand: 2
+  state:
+    d_anat: 256
+    d_lesion: 192
+    d_unc: 64
+    world_dim: 512
